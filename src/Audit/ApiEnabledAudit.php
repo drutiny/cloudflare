@@ -42,13 +42,22 @@ abstract class ApiEnabledAudit extends Audit {
 
   protected function zoneInfo($zone)
   {
-    $results = $this->api()->request('GET', 'zones?page=1&name=' . $zone . '&per_page=20');
-    $number_of_matches = count($results['result']);
-    if ($number_of_matches !== 1) {
-      throw new \Exception("There is no zone with that name: {$zone}.");
-    }
+    $original_zone = $zone;
+    $names = explode('.', $zone);
 
-    return $results['result'][0];
+    while ($zone = implode('.', $names)) {
+      $results = $this->api()->request('GET', 'zones?page=1&name=' . $zone . '&per_page=20');
+      $number_of_matches = count($results['result']);
+
+      // If zone passed is actually a subdomain, then pop a name of the domain
+      // and reattempt to find the zone.
+      if ($number_of_matches !== 1) {
+        array_shift($names);
+        continue;
+      }
+      return $results['result'][0];
+    }
+    throw new \Exception("There is no zone with that name: {$original_zone}.");
   }
 }
 

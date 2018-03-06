@@ -7,6 +7,7 @@ use Drutiny\Audit;
 use Drutiny\Sandbox\Sandbox;
 use Drutiny\Annotation\Param;
 use Drutiny\Annotation\Token;
+use Symfony\Component\Yaml\Yaml;
 
 /**
  * @Param(
@@ -45,13 +46,24 @@ class PageRuleMatch extends ApiEnabledAudit {
   {
     $uri = $sandbox->drush()->getGlobalDefaultOption('uri');
     $host = strpos($uri, 'http') === 0 ? parse_url($uri, PHP_URL_HOST) : $uri;
+    $sandbox->setParameter('host', $host);
 
     $zone  = $this->zoneInfo($sandbox->getParameter('zone', $host));
+    $sandbox->setParameter('zone', $zone['name']);
+
     $response = $this->api()->request('GET', "zones/{$zone['id']}/pagerules");
 
-    $constraint = strtr($sandbox->getParameter('rule'), [
-      ':zone' => $zone['name'],
-    ]);
+    // Create a reusable translation function to allow settings to use variables.
+    $t = function ($v) use ($zone, $host) {
+      return strtr($v, [
+        ':zone' => $zone['name'],
+        ':host' => $host
+      ]);
+    };
+
+    $constraint = $t($sandbox->getParameter('rule'));
+    $sandbox->setParameter('rule', $constraint);
+
 
     $rules = array_filter($response['result'], function ($rule) use ($constraint) {
       return $rule['targets'][0]['constraint']['value'] == $constraint;
@@ -67,6 +79,10 @@ class PageRuleMatch extends ApiEnabledAudit {
     }
 
     $settings = $sandbox->getParameter('settings');
+    if (isset($settings['forwarding_url'])) {
+      $settings['forwarding_url']['url'] = $t($settings['forwarding_url']['url']);
+    }
+    $sandbox->setParameter('settings', $settings);
 
     $extra_actions = array_diff_key($actions, $settings);
     $test_actions = array_diff_key($actions, $extra_actions);
@@ -75,6 +91,7 @@ class PageRuleMatch extends ApiEnabledAudit {
     $sandbox->setParameter('actions', $actions);
     $sandbox->setParameter('extra_actions', $extra_actions);
     $sandbox->setParameter('invalid_actions', $invalid_actions);
+    $sandbox->logger()->info(__CLASS__ . PHP_EOL . Yaml::dump(['parameters' => $sandbox->getParameterTokens()], 6));
 
     return empty($invalid_actions);
   }
