@@ -11,11 +11,19 @@ remediation: |
   Add a page rule in Cloudflare with the matching pattern of `{{rule}}`.
 
   For this rule, ensure a Forwarding URL setting is selected and forwards to
-  `{{settings.forwarding_url.url}}` with a status code of `{{settings.forwarding_url.status_code}}`
+  `{{settings.forwarding_url.url}}` with a status code of *{{settings.forwarding_url.status_code}}*
 success: |
   There is a page rule for {{rule}} which forwards to {{settings.forwarding_url.url}}
   with a status code of {{settings.forwarding_url.status_code}}.
-failure: No forwarding of the apex domain exists.
+failure: |
+  {{#actions.forwarding_url}}
+    A Forwarding URL was found but incorrect. URL forwarded to
+    {{actions.forwarding_url.url}} with a status code of
+    {{actions.forwarding_url.status_code}}.
+  {{/actions.forwarding_url}}
+  {{^actions.forwarding_url}}
+    No such rule was found with an existing Forwarding URL.
+  {{/actions.forwarding_url}}
 parameters:
   rule:
     default: https://:zone/*
