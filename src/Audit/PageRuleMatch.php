@@ -96,7 +96,7 @@ class PageRuleMatch extends ApiEnabledAudit {
     // Calculate the differences.
     $extra_actions = array_diff_key($actions, $settings);
     $test_actions = array_diff_key($actions, $extra_actions);
-    $invalid_actions = array_diff_assoc($settings, $test_actions);
+    $invalid_actions = array_diff_assoc($test_actions, $settings);
 
     // Format parameters so that array_diff_(key|assoc) can do the correct job.
     $extra_actions = array_map(['Symfony\Component\Yaml\Yaml', 'parse'], $extra_actions);
@@ -104,6 +104,14 @@ class PageRuleMatch extends ApiEnabledAudit {
 
     $sandbox->setParameter('extra_actions', $extra_actions);
     $sandbox->setParameter('invalid_actions', $invalid_actions);
+    $sandbox->setParameter('invalid_actions_array', array_map(function ($key, $value) {
+      return ['id' => $key, 'value' => Yaml::dump($value)];
+    }, array_keys($invalid_actions), array_values($invalid_actions)));
+
+    $sandbox->setParameter('settings_array', array_map(function ($key, $value) {
+      return ['id' => $key, 'value' => $value];
+    }, array_keys($settings), array_values($settings)));
+
     $sandbox->logger()->info(__CLASS__ . PHP_EOL . Yaml::dump(['parameters' => $sandbox->getParameterTokens()], 6));
 
     return empty($invalid_actions);
