@@ -4,41 +4,22 @@ namespace Drutiny\Cloudflare\Audit;
 
 use Drutiny\Cloudflare\Client;
 use Drutiny\Audit;
+use Drutiny\Credential\Manager;
+use Drutiny\Credential\CredentialsUnavailableException;
 use Drutiny\Sandbox\Sandbox;
 use GuzzleHttp\Exception\RequestException;
 
 abstract class ApiEnabledAudit extends Audit {
-  static public function credentialFilepath()
-  {
-    return sprintf('%s/.drutiny/cloudflare.json', $_SERVER['HOME']);
-  }
-
-  protected function getEmail()
-  {
-    $data = file_get_contents(self::credentialFilepath());
-    $data = json_decode($data, TRUE);
-    return $data['email'];
-  }
-
-  protected function getKey()
-  {
-    $data = file_get_contents(self::credentialFilepath());
-    $data = json_decode($data, TRUE);
-    return $data['key'];
-  }
 
   public function requireApiCredentials()
   {
-    $creds = self::credentialFilepath();
-    if (!file_exists($creds)) {
-      throw new InvalidArgumentException("Cloudflare credentials need to be setup. Please run setup:cloudflare.");
-    }
-    return TRUE;
+      return Manager::load('cloudflare') ? TRUE : FALSE;
   }
 
   protected function api()
   {
-    return new Client($this->getEmail(), $this->getKey());
+    $creds = Manager::load('cloudflare');
+    return new Client($creds['email'], $creds['key']);
   }
 
   protected function zoneInfo($zone)
