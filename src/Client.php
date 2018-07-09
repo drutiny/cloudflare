@@ -4,7 +4,7 @@ namespace Drutiny\Cloudflare;
 
 use GuzzleHttp\Exception\RequestException;
 use Symfony\Component\Console\Output\OutputInterface;
-use GuzzleHttp\Client as HttpClient;
+use Drutiny\Http\Client as HttpClient;
 use GuzzleHttp\RequestOptions;
 use GuzzleHttp\TransferStats;
 

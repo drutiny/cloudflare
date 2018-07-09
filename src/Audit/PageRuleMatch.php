@@ -44,7 +44,7 @@ use Symfony\Component\Yaml\Yaml;
 class PageRuleMatch extends ApiEnabledAudit {
   public function audit(Sandbox $sandbox)
   {
-    $uri = $sandbox->drush()->getGlobalDefaultOption('uri');
+    $uri = $sandbox->getTarget()->uri();
     $host = strpos($uri, 'http') === 0 ? parse_url($uri, PHP_URL_HOST) : $uri;
     $sandbox->setParameter('host', $host);
 
