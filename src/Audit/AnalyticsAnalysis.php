@@ -34,12 +34,12 @@ class AnalyticsAnalysis extends AbstractAnalysis {
     $zone  = $this->zoneInfo($sandbox->getParameter('zone', $host));
     $sandbox->setParameter('zone', $zone['name']);
 
-    $response = $this->api()->request('GET', "zones/{$zone['id']}/analytics/dashboard", [
-      'query' => [
-        'since' => $sandbox->getReportingPeriodStart()->format(\DateTime::RFC3339),
-        'until' => $sandbox->getReportingPeriodEnd()->format(\DateTime::RFC3339),
-      ]
+    $query = http_build_query([
+      'since' => $sandbox->getReportingPeriodStart()->format(\DateTime::RFC3339),
+      'until' => $sandbox->getReportingPeriodEnd()->format(\DateTime::RFC3339),
     ]);
+
+    $response = $this->api()->request("GET", "zones/{$zone['id']}/analytics/dashboard?$query");
 
     foreach ($response as $key => $value) {
       $sandbox->setParameter($key, $value);
