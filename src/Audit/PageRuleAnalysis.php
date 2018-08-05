@@ -26,6 +26,12 @@ use Drutiny\Audit\AbstractAnalysis;
  *  type = "string",
  *  description = "An ExpressionLanguage expression to evaluate the outcome of a page rule.",
  * )
+ * @Param(
+ *  name = "not_applicable",
+ *  type = "string",
+ *  default = "false",
+ *  description = "The expression language to evaludate if the analysis is not applicable. See https://symfony.com/doc/current/components/expression_language/syntax.html"
+ * )
  * @Token(
  *  name = "settings",
  *  type = "array",
@@ -54,19 +60,29 @@ class PageRuleAnalysis extends AbstractAnalysis {
     };
 
     $constraint = $t($sandbox->getParameter('rule'));
-    $sandbox->setParameter('rule', $constraint);
+
 
     $rules = array_filter($response['result'], function ($rule) use ($constraint) {
       return $rule['targets'][0]['constraint']['value'] == $constraint;
     });
 
+    // If we couldn't find an explicit match, see if there is a match on another
+    // page rule.
     if (!count($rules)) {
-      throw new \Exception("Cannot find a rule for $constraint.");
+
+      $rules = array_filter($response['result'], function ($rule) use ($constraint) {
+        return fnmatch($rule['targets'][0]['constraint']['value'], $constraint);
+      });
+
+      if (!count($rules)) {
+        throw new \Exception("Cannot find a rule for $constraint.");
+      }
     }
 
     // Build action array.
     $rule = array_shift($rules);
     $sandbox->setParameter('settings', $rule);
+    $sandbox->setParameter('rule', $rule['targets'][0]['constraint']['value']);
 
     foreach ($rule['actions'] as $value) {
       $rule[$value['id']] = isset($value['value']) ? $value['value'] : TRUE;
