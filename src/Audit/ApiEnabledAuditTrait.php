@@ -4,6 +4,7 @@ namespace Drutiny\Cloudflare\Audit;
 
 use Drutiny\Cloudflare\Client;
 use Drutiny\Credential\Manager;
+use Drutiny\Container;
 use GuzzleHttp\Exception\RequestException;
 
 trait ApiEnabledAuditTrait {
@@ -25,7 +26,9 @@ trait ApiEnabledAuditTrait {
     $names = explode('.', $zone);
 
     while ($zone = implode('.', $names)) {
+
       try {
+        Container::getLogger()->debug("Trying to load zone: $zone");
         $results = $this->api()->request('GET', 'zones?page=1&name=' . $zone . '&per_page=20');
         $number_of_matches = count($results['result']);
       }
