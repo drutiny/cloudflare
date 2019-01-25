@@ -49,7 +49,7 @@ class Client {
    *
    * @throws \Exception
    */
-  public function request($method = 'GET', $endpoint, $payload = [], $decodeBody = TRUE) {
+  public function request($method = 'GET', $endpoint, $payload = [], $decodeBody = TRUE, array $query = []) {
     $url = '';
     $time = 0;
     $client = new HttpClient([
