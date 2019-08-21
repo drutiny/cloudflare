@@ -6,6 +6,7 @@ use Drutiny\Audit\AbstractAnalysis;
 use Drutiny\Sandbox\Sandbox;
 use Drutiny\Annotation\Param;
 use Drutiny\Annotation\Token;
+use Symfony\Component\Yaml\Yaml;
 
 /**
  * @Param(
@@ -19,7 +20,7 @@ use Drutiny\Annotation\Token;
  *  description = "A keyed list of actions the page rule that don't match the values set in the settings parameter.",
  * )
  */
-class AnalyticsAnalysis extends AbstractAnalysis {
+class ZoneAnalysis extends AbstractAnalysis {
   use ApiEnabledAuditTrait;
 
   /**
@@ -34,14 +35,30 @@ class AnalyticsAnalysis extends AbstractAnalysis {
     $zone  = $this->zoneInfo($sandbox->getParameter('zone', $host));
     $sandbox->setParameter('zone', $zone['name']);
 
-    $response = $this->api()->request("GET", "zones/{$zone['id']}/analytics/dashboard", ['query' => [
-      'since' => $sandbox->getReportingPeriodStart()->format(\DateTime::RFC3339),
-      'until' => $sandbox->getReportingPeriodEnd()->format(\DateTime::RFC3339),
-    ]]);
+    $response = $this->api()->request("GET", "zones/{$zone['id']}/settings");
 
-    foreach ($response as $key => $value) {
-      $sandbox->setParameter($key, $value);
+
+    // Provide keyed versions too.
+    foreach ($response['result'] as &$setting) {
+      $setting['name'] = implode(' ', array_map('ucwords', explode('_', $setting['id'])));
+
+      $setting['name'] = strtr($setting['name'], [
+        'Tls' => 'TLS',
+        'Ttl' => 'TTL',
+        'Ddos' => 'DDOS',
+        'Https' => 'HTTPS',
+        'Ip' => 'IP',
+        'Waf' => 'WAF',
+        'Ssl' => 'SSL',
+        'Http' => 'HTTP',
+        'Cname' => 'CNAME'
+      ]);
+
+      $setting['value'] = Yaml::dump($setting['value'], 0);
+      $sandbox->setParameter($setting['id'], $setting);
     }
+
+    $sandbox->setParameter('settings', $response['result']);
   }
 }
 

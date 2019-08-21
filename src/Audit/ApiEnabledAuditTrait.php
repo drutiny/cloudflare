@@ -29,7 +29,11 @@ trait ApiEnabledAuditTrait {
 
       try {
         Container::getLogger()->debug("Trying to load zone: $zone");
-        $results = $this->api()->request('GET', 'zones?page=1&name=' . $zone . '&per_page=20');
+        $results = $this->api()->request('GET', 'zones', ['query' => [
+            'page' => 1,
+            'name' => $zone,
+            'per_page' => 20
+        ]]);
         $number_of_matches = count($results['result']);
       }
       catch (RequestException $e) {

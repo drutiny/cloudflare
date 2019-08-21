@@ -49,9 +49,7 @@ class Client {
    *
    * @throws \Exception
    */
-  public function request($method = 'GET', $endpoint, $payload = [], $decodeBody = TRUE, array $query = []) {
-    $url = '';
-    $time = 0;
+  public function request($method = 'GET', $endpoint, array $options = [], $decodeBody = TRUE) {
     $client = new HttpClient([
       'base_uri' => self::API_BASE,
       'headers' => [
@@ -67,14 +65,7 @@ class Client {
       'timeout' => 300,
     ]);
 
-    if (!empty($payload)) {
-      $response = $client->request($method, $endpoint, [
-        RequestOptions::JSON => $payload,
-      ]);
-    }
-    else {
-      $response = $client->request($method, $endpoint);
-    }
+    $response = $client->request($method, $endpoint, $options);
 
     if (!in_array($response->getStatusCode(), [200, 204])) {
       throw new \Exception('Error: ' . (string) $response->getBody());
