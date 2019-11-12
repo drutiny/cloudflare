@@ -54,6 +54,7 @@ class ZoneAnalysis extends AbstractAnalysis {
         'Cname' => 'CNAME'
       ]);
 
+      $setting['data'] = $setting['value'];
       $setting['value'] = Yaml::dump($setting['value'], 0);
       $sandbox->setParameter($setting['id'], $setting);
     }
