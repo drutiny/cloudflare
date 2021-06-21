@@ -1,0 +1,16 @@
+services:
+  _defaults:
+    autowire: true      # Automatically injects dependencies in your services.
+    autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
+    public: true
+
+  cloudflare.api:
+    class: Drutiny\Cloudflare\Client
+
+  Drutiny\Cloudflare\Client:
+    
+  Drutiny\Cloudflare\CloudflareApiPlugin:
+    tags: [plugin]
+
+  Drutiny\Cloudflare\Audit\:
+    resource: 'src/Audit/*'

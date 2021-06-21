@@ -3,21 +3,13 @@
 namespace Drutiny\Cloudflare\Audit;
 
 use Drutiny\Cloudflare\Client;
-use Drutiny\Credential\Manager;
-use Drutiny\Container;
 use GuzzleHttp\Exception\RequestException;
 
 trait ApiEnabledAuditTrait {
 
-  public function requireApiCredentials()
+  protected function api():Client
   {
-      return Manager::load('cloudflare') ? TRUE : FALSE;
-  }
-
-  protected function api()
-  {
-    $creds = Manager::load('cloudflare');
-    return new Client($creds['email'], $creds['key']);
+    return $this->container->get('cloudflare.api');
   }
 
   protected function zoneInfo($zone)
@@ -28,7 +20,7 @@ trait ApiEnabledAuditTrait {
     while ($zone = implode('.', $names)) {
 
       try {
-        Container::getLogger()->debug("Trying to load zone: $zone");
+        $this->logger->debug("Trying to load zone: $zone");
         $results = $this->api()->request('GET', 'zones', ['query' => [
             'page' => 1,
             'name' => $zone,

@@ -28,9 +28,10 @@ class Client {
   /**
    * API constructor.
    */
-  public function __construct($email, $key) {
-    $this->email = $email;
-    $this->key = $key;
+  public function __construct(CloudflareApiPlugin $plugin) {
+    $config = $plugin->load();
+    $this->email = $config['email']];
+    $this->key = $config['key'];
   }
 
   /**

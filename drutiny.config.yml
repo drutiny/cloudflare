@@ -1,8 +1,0 @@
-CredentialSchema:
-  cloudflare:
-    email:
-      type: email
-      description: The email address you use to login to Cloudflare with.
-    key:
-      type: string
-      description: The Cloudflare API key. This can be obtained from the Cloudflare UI.

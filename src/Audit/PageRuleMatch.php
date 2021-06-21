@@ -5,26 +5,9 @@ namespace Drutiny\Cloudflare\Audit;
 use Drutiny\Cloudflare\Client;
 use Drutiny\Audit;
 use Drutiny\Sandbox\Sandbox;
-use Drutiny\Annotation\Param;
-use Drutiny\Annotation\Token;
 use Symfony\Component\Yaml\Yaml;
 
 /**
- * @Param(
- *  name = "zone",
- *  type = "string",
- *  description = "The apex domain registered with Cloudflare.",
- * )
- * @Param(
- *  name = "rule",
- *  type = "string",
- *  description = "The page rule pattern to look up.",
- * )
- * @Param(
- *  name = "settings",
- *  type = "array",
- *  description = "A keyed list of actions the page rule should action.",
- * )
  * @Token(
  *  name = "actions",
  *  type = "array",
@@ -42,14 +25,37 @@ use Symfony\Component\Yaml\Yaml;
  * )
  */
 class PageRuleMatch extends ApiEnabledAudit {
+
+  public function configure()
+  {
+      $this->addParameter(
+        'zone',
+        static::PARAMETER_OPTIONAL,
+        'The apex domain registered with Cloudflare.',
+        ''
+      );
+      $this->addParameter(
+        'rule',
+        static::PARAMETER_OPTIONAL,
+        'The page rule pattern to look up.',
+        ''
+      );
+      $this->addParameter(
+        'settings',
+        static::PARAMETER_OPTIONAL,
+        'A keyed list of actions the page rule should action.',
+        ''
+      );
+  }
+
   public function audit(Sandbox $sandbox)
   {
-    $uri = $sandbox->getTarget()->uri();
+    $uri = $this->target['uri'];
     $host = strpos($uri, 'http') === 0 ? parse_url($uri, PHP_URL_HOST) : $uri;
-    $sandbox->setParameter('host', $host);
+    $this->set('host', $host);
 
-    $zone  = $this->zoneInfo($sandbox->getParameter('zone', $host));
-    $sandbox->setParameter('zone', $zone['name']);
+    $zone  = $this->zoneInfo($this->getParameter('zone', $host));
+    $this->set('zone', $zone['name']);
 
     $response = $this->api()->request('GET', "zones/{$zone['id']}/pagerules");
 
@@ -61,8 +67,8 @@ class PageRuleMatch extends ApiEnabledAudit {
       ]);
     };
 
-    $constraint = $t($sandbox->getParameter('rule'));
-    $sandbox->setParameter('rule', $constraint);
+    $constraint = $t($this->getParameter('rule'));
+    $this->set('rule', $constraint);
 
 
     $rules = array_filter($response['result'], function ($rule) use ($constraint) {
@@ -79,15 +85,15 @@ class PageRuleMatch extends ApiEnabledAudit {
       $actions[$action['id']] = isset($action['value']) ? $action['value'] : TRUE;
     }
     $this->recurKsort($actions);
-    $sandbox->setParameter('actions', $actions);
+    $this->set('actions', $actions);
 
     // Build settings array.
-    $settings = $sandbox->getParameter('settings');
+    $settings = $this->getParameter('settings');
     if (isset($settings['forwarding_url'])) {
       $settings['forwarding_url']['url'] = $t($settings['forwarding_url']['url']);
     }
     $this->recurKsort($settings);
-    $sandbox->setParameter('settings', $settings);
+    $this->set('settings', $settings);
 
     // Format parameters so that array_diff_(key|assoc) can do the correct job.
     $settings = array_map(['Symfony\Component\Yaml\Yaml', 'dump'], $settings);
@@ -102,17 +108,17 @@ class PageRuleMatch extends ApiEnabledAudit {
     $extra_actions = array_map(['Symfony\Component\Yaml\Yaml', 'parse'], $extra_actions);
     $invalid_actions = array_map(['Symfony\Component\Yaml\Yaml', 'parse'], $invalid_actions);
 
-    $sandbox->setParameter('extra_actions', $extra_actions);
-    $sandbox->setParameter('invalid_actions', $invalid_actions);
-    $sandbox->setParameter('invalid_actions_array', array_map(function ($key, $value) {
+    $this->set('extra_actions', $extra_actions);
+    $this->set('invalid_actions', $invalid_actions);
+    $this->set('invalid_actions_array', array_map(function ($key, $value) {
       return ['id' => $key, 'value' => Yaml::dump($value)];
     }, array_keys($invalid_actions), array_values($invalid_actions)));
 
-    $sandbox->setParameter('settings_array', array_map(function ($key, $value) {
+    $this->set('settings_array', array_map(function ($key, $value) {
       return ['id' => $key, 'value' => $value];
     }, array_keys($settings), array_values($settings)));
 
-    $sandbox->logger()->info(__CLASS__ . PHP_EOL . Yaml::dump(['parameters' => $sandbox->getParameterTokens()], 6));
+    $sandbox->logger()->info(__CLASS__ . PHP_EOL . Yaml::dump(['parameters' => $this->getParameterTokens()], 6));
 
     return empty($invalid_actions);
   }
