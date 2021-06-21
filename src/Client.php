@@ -30,7 +30,7 @@ class Client {
    */
   public function __construct(CloudflareApiPlugin $plugin) {
     $config = $plugin->load();
-    $this->email = $config['email']];
+    $this->email = $config['email'];
     $this->key = $config['key'];
   }
 
