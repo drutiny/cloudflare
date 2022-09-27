@@ -7,6 +7,8 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Drutiny\Http\Client as HttpClient;
 use GuzzleHttp\RequestOptions;
 use GuzzleHttp\TransferStats;
+use Symfony\Component\DependencyInjection\ContainerInterface;
+
 
 class Client {
 
@@ -28,10 +30,24 @@ class Client {
   /**
    * API constructor.
    */
-  public function __construct(CloudflareApiPlugin $plugin) {
+  public function __construct(CloudflareApiPlugin $plugin, HTTPClient $http, ContainerInterface $container) {
     $config = $plugin->load();
-    $this->email = $config['email'];
-    $this->key = $config['key'];
+    // $this->email = $config['email'];
+    // $this->key = $config['key'];
+    $this->client = $http->create([
+      'base_uri' => self::API_BASE,
+      'headers' => [
+        'X-Auth-Email' => $config['email'],
+        'X-Auth-Key' => $config['key'],
+        'User-Agent' => 'drutiny-cloudflare/4.x',
+        'Accept' => 'application/json',
+        'Accept-Encoding' => 'gzip'
+      ],
+      'decode_content' => 'gzip',
+      'allow_redirects' => FALSE,
+      'connect_timeout' => 10,
+      'timeout' => 300,
+    ]);
   }
 
   /**
@@ -51,22 +67,8 @@ class Client {
    * @throws \Exception
    */
   public function request($method = 'GET', $endpoint, array $options = [], $decodeBody = TRUE) {
-    $client = new HttpClient([
-      'base_uri' => self::API_BASE,
-      'headers' => [
-        'X-Auth-Email' => $this->email,
-        'X-Auth-Key' => $this->key,
-        'User-Agent' => 'drutiny-cloudflare/2.x',
-        'Accept' => 'application/json',
-        'Accept-Encoding' => 'gzip'
-      ],
-      'decode_content' => 'gzip',
-      'allow_redirects' => FALSE,
-      'connect_timeout' => 10,
-      'timeout' => 300,
-    ]);
 
-    $response = $client->request($method, $endpoint, $options);
+    $response = $this->client->request($method, $endpoint, $options);
 
     if (!in_array($response->getStatusCode(), [200, 204])) {
       throw new \Exception('Error: ' . (string) $response->getBody());
