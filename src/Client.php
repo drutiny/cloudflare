@@ -32,8 +32,6 @@ class Client {
    */
   public function __construct(CloudflareApiPlugin $plugin, HTTPClient $http, ContainerInterface $container) {
     $config = $plugin->load();
-    // $this->email = $config['email'];
-    // $this->key = $config['key'];
     $this->client = $http->create([
       'base_uri' => self::API_BASE,
       'headers' => [
