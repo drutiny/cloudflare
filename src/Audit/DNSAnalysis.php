@@ -25,7 +25,7 @@ class DNSAnalysis extends AbstractAnalysis
             'zone',
             static::PARAMETER_OPTIONAL,
             'The apex domain registered with Cloudflare.',
-            ''
+            NULL
         );
         $this->addParameter(
             'expression',

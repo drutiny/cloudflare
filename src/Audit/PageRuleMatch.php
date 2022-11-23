@@ -32,7 +32,7 @@ class PageRuleMatch extends ApiEnabledAudit {
         'zone',
         static::PARAMETER_OPTIONAL,
         'The apex domain registered with Cloudflare.',
-        ''
+        NULL
       );
       $this->addParameter(
         'rule',
