@@ -5,6 +5,7 @@ namespace Drutiny\Cloudflare;
 use GuzzleHttp\Exception\RequestException;
 use Symfony\Component\Console\Output\OutputInterface;
 use Drutiny\Http\Client as HttpClient;
+use GuzzleHttp\ClientInterface;
 use GuzzleHttp\RequestOptions;
 use GuzzleHttp\TransferStats;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -26,6 +27,8 @@ class Client {
    * API key used for authentication.
    */
   protected $key;
+
+  protected ClientInterface $client;
 
   /**
    * API constructor.
@@ -64,7 +67,7 @@ class Client {
    *
    * @throws \Exception
    */
-  public function request($method = 'GET', $endpoint, array $options = [], $decodeBody = TRUE) {
+  public function request($method, $endpoint, array $options = [], $decodeBody = TRUE) {
 
     $response = $this->client->request($method, $endpoint, $options);
 
