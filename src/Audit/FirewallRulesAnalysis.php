@@ -19,7 +19,7 @@ class FirewallRulesAnalysis extends AbstractAnalysis
 {
     use ApiEnabledAuditTrait;
 
-    public function configure()
+    public function configure():void
     {
         $this->addParameter(
             'zone',

@@ -26,7 +26,7 @@ use Symfony\Component\Yaml\Yaml;
  */
 class PageRuleMatch extends ApiEnabledAudit {
 
-  public function configure()
+  public function configure():void
   {
       $this->addParameter(
         'zone',
