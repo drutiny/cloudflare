@@ -12,5 +12,3 @@ services:
   Drutiny\Cloudflare\CloudflareApiPlugin:
     tags: [plugin]
 
-  Drutiny\Cloudflare\Audit\:
-    resource: 'src/Audit/*'
