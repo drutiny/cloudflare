@@ -8,7 +8,4 @@ services:
     class: Drutiny\Cloudflare\Client
 
   Drutiny\Cloudflare\Client:
-    
-  Drutiny\Cloudflare\CloudflareApiPlugin:
-    tags: [plugin]
 

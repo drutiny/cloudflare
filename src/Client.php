@@ -2,15 +2,24 @@
 
 namespace Drutiny\Cloudflare;
 
-use GuzzleHttp\Exception\RequestException;
-use Symfony\Component\Console\Output\OutputInterface;
 use Drutiny\Http\Client as HttpClient;
 use GuzzleHttp\ClientInterface;
-use GuzzleHttp\RequestOptions;
-use GuzzleHttp\TransferStats;
-use Symfony\Component\DependencyInjection\ContainerInterface;
+use Drutiny\Attribute\Plugin;
+use Drutiny\Attribute\PluginField;
+use Drutiny\Plugin as DrutinyPlugin;
+use Drutiny\Plugin\FieldType;
 
-
+#[Plugin(name: 'cloudflare:api')]
+#[PluginField(
+  name: 'email',
+  description: "The email address you use to login to Cloudflare with:",
+  type: FieldType::CREDENTIAL
+)]
+#[PluginField(
+  name: 'key',
+  description: 'The Cloudflare API key. This can be obtained from the Cloudflare UI:',
+  type: FieldType::CREDENTIAL
+)]
 class Client {
 
   /**
@@ -33,13 +42,12 @@ class Client {
   /**
    * API constructor.
    */
-  public function __construct(CloudflareApiPlugin $plugin, HTTPClient $http, ContainerInterface $container) {
-    $config = $plugin->load();
+  public function __construct(DrutinyPlugin $plugin, HTTPClient $http) {
     $this->client = $http->create([
       'base_uri' => self::API_BASE,
       'headers' => [
-        'X-Auth-Email' => $config['email'],
-        'X-Auth-Key' => $config['key'],
+        'X-Auth-Email' => $plugin->email,
+        'X-Auth-Key' => $plugin->key,
         'User-Agent' => 'drutiny-cloudflare/4.x',
         'Accept' => 'application/json',
         'Accept-Encoding' => 'gzip'

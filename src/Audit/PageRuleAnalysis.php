@@ -36,7 +36,7 @@ class PageRuleAnalysis extends AbstractAnalysis
         $this->addParameter(
             'expression',
             static::PARAMETER_OPTIONAL,
-            'An ExpressionLanguage expression to evaluate the outcome of a page rule.',
+            'A Twig expression to evaluate the outcome of a page rule.',
             ''
         );
         $this->addParameter(
