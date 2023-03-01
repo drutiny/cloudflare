@@ -2,19 +2,15 @@
 
 namespace Drutiny\Cloudflare\Audit;
 
+use Drutiny\Attribute\UseService;
 use Drutiny\Cloudflare\Client;
-use Drutiny\Audit;
 use Drutiny\Sandbox\Sandbox;
-use Symfony\Component\Yaml\Yaml;
 use Drutiny\Audit\AbstractAnalysis;
 
 /**
- * @Token(
- *  name = "settings",
- *  type = "array",
- *  description = "A keyed list of settings for a rule.",
- * )
+ *
  */
+#[UseService(id: Client::class, method: 'setClient')]
 class PageRuleAnalysis extends AbstractAnalysis
 {
     use ApiEnabledAuditTrait;
@@ -32,20 +28,8 @@ class PageRuleAnalysis extends AbstractAnalysis
             static::PARAMETER_OPTIONAL,
             'The page rule pattern to look up.',
             ''
-        );
-        $this->addParameter(
-            'expression',
-            static::PARAMETER_OPTIONAL,
-            'A Twig expression to evaluate the outcome of a page rule.',
-            ''
-        );
-        $this->addParameter(
-            'not_applicable',
-            static::PARAMETER_OPTIONAL,
-            'The expression language to evaludate if the analysis is not applicable. See https://symfony.com/doc/current/components/expression_language/syntax.html',
-            'false'
-        );
-
+        );  
+        parent::configure();
     }
 
     public function gather(Sandbox $sandbox)

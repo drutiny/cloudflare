@@ -7,9 +7,18 @@ use GuzzleHttp\Exception\RequestException;
 
 trait ApiEnabledAuditTrait {
 
+  protected Client $client;
+
+  public function setClient(Client $client) {
+    $this->client = $client;
+  }
+
+  /**
+   * @deprecated
+   */
   protected function api():Client
   {
-    return $this->container->get('cloudflare.api');
+    return $this->client;
   }
 
   protected function zoneInfo($zone)

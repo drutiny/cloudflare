@@ -2,16 +2,14 @@
 
 namespace Drutiny\Cloudflare\Audit;
 
+use Drutiny\Attribute\UseService;
 use Drutiny\Audit\AbstractAnalysis;
 use Drutiny\Sandbox\Sandbox;
 
 /**
- * @Token(
- *  name = "invalid_actions",
- *  type = "array",
- *  description = "A keyed list of actions the page rule that don't match the values set in the settings parameter.",
- * )
+ * 
  */
+#[UseService(id: Client::class, method: 'setClient')]
 class AnalyticsAnalysis extends AbstractAnalysis
 {
     use ApiEnabledAuditTrait;

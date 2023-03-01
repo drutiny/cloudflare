@@ -26,28 +26,34 @@ class Client {
    * API base URL for Cloudflare.
    */
   const API_BASE = 'https://api.cloudflare.com/client/v4/';
-
-  /**
-   * Email used for API authentication.
-   */
-  protected $email;
-
-  /**
-   * API key used for authentication.
-   */
-  protected $key;
-
-  protected ClientInterface $client;
-
+  
   /**
    * API constructor.
    */
-  public function __construct(DrutinyPlugin $plugin, HTTPClient $http) {
-    $this->client = $http->create([
+  public function __construct(protected DrutinyPlugin $plugin, protected HTTPClient $http) {
+   
+  }
+
+  /**
+   * Informs if the Cloudflare API has been configured in Drutiny.
+   */
+  public function isInstalled():bool
+  {
+    return $this->plugin->isInstalled();
+  }
+
+  /**
+   * Get an HTTP client for interacting with the CLoudflare API.
+   * 
+   * @throws PluginRequiredException.
+   */
+  public function getClient():ClientInterface
+  {
+    return $this->http->create([
       'base_uri' => self::API_BASE,
       'headers' => [
-        'X-Auth-Email' => $plugin->email,
-        'X-Auth-Key' => $plugin->key,
+        'X-Auth-Email' => $this->plugin->email,
+        'X-Auth-Key' => $this->plugin->key,
         'User-Agent' => 'drutiny-cloudflare/4.x',
         'Accept' => 'application/json',
         'Accept-Encoding' => 'gzip'
@@ -77,7 +83,7 @@ class Client {
    */
   public function request($method, $endpoint, array $options = [], $decodeBody = TRUE) {
 
-    $response = $this->client->request($method, $endpoint, $options);
+    $response = $this->getClient()->request($method, $endpoint, $options);
 
     if (!in_array($response->getStatusCode(), [200, 204])) {
       throw new \Exception('Error: ' . (string) $response->getBody());

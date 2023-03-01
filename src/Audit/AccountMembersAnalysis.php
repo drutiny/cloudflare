@@ -2,19 +2,15 @@
 
 namespace Drutiny\Cloudflare\Audit;
 
+use Drutiny\Attribute\UseService;
 use Drutiny\Cloudflare\Client;
-use Drutiny\Audit;
 use Drutiny\Sandbox\Sandbox;
-use Symfony\Component\Yaml\Yaml;
 use Drutiny\Audit\AbstractAnalysis;
 
 /**
- * @Token(
- *  name = "settings",
- *  type = "array",
- *  description = "A keyed list of settings for a rule.",
- * )
+ * 
  */
+#[UseService(id: Client::class, method: 'setClient')]
 class AccountMembersAnalysis extends AbstractAnalysis
 {
     use ApiEnabledAuditTrait;

@@ -9,3 +9,5 @@ services:
 
   Drutiny\Cloudflare\Client:
 
+  Drutiny\Cloudflare\EventsSubscriber:
+    tags: [kernel.event_subscriber]

@@ -2,28 +2,15 @@
 
 namespace Drutiny\Cloudflare\Audit;
 
+use Drutiny\Attribute\UseService;
 use Drutiny\Cloudflare\Client;
-use Drutiny\Audit;
 use Drutiny\Sandbox\Sandbox;
 use Symfony\Component\Yaml\Yaml;
 
 /**
- * @Token(
- *  name = "actions",
- *  type = "array",
- *  description = "A keyed list of actions the page rule contains.",
- * )
- * @Token(
- *  name = "extra_actions",
- *  type = "array",
- *  description = "A keyed list of actions the page rule contains that are not listed in the settings parameter.",
- * )
- * @Token(
- *  name = "invalid_actions",
- *  type = "array",
- *  description = "A keyed list of actions the page rule that don't match the values set in the settings parameter.",
- * )
+ *
  */
+#[UseService(id: Client::class, method: 'setClient')]
 class PageRuleMatch extends ApiEnabledAudit {
 
   public function configure():void

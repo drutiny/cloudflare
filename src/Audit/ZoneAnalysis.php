@@ -2,46 +2,30 @@
 
 namespace Drutiny\Cloudflare\Audit;
 
+use Drutiny\Attribute\UseService;
 use Drutiny\Audit\AbstractAnalysis;
+use Drutiny\Cloudflare\Client;
 use Drutiny\Sandbox\Sandbox;
 use Symfony\Component\Yaml\Yaml;
 
 /**
- * @Token(
- *  name = "invalid_actions",
- *  type = "array",
- *  description = "A keyed list of actions the page rule that don't match the values set in the settings parameter.",
- * )
+ * 
  */
+#[UseService(id: Client::class, method: 'setClient')]
 class ZoneAnalysis extends AbstractAnalysis
 {
     use ApiEnabledAuditTrait;
-
-    public function configure():void
-    {
-        $this->addParameter(
-            'expression',
-            static::PARAMETER_OPTIONAL,
-            'An expression to evaluate to determine the outcome of the audit',
-            ''
-        );
-
-    }
 
     /**
      * {@inheritdoc}
      */
     public function gather(Sandbox $sandbox)
     {
-        $uri = $this->target['uri'];
-        $host = strpos($uri, 'http') === 0 ? parse_url($uri, PHP_URL_HOST) : $uri;
-        $this->set('host', $host);
+        $this->set('host', $this->target['domain']);
 
-        $zone  = $this->zoneInfo($this->getParameter('zone', $host));
-        $this->set('zone', $zone['name']);
+        $this->set('zone', $this->target['cloudflare.zone']->export());
 
-        $response = $this->api()->request("GET", "zones/{$zone['id']}/settings");
-
+        $response = $this->client->request("GET", "zones/{$this->target['cloudflare.zone.id']}/settings");
 
         // Provide keyed versions too.
         foreach ($response['result'] as &$setting) {
