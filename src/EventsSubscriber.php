@@ -29,14 +29,19 @@ class EventsSubscriber implements EventSubscriberInterface {
             $this->logger->warning("Cloudflare plugin is not installed. Please run 'plugin:setup cloudflare:api' to Cloudflare zone information on target.");
             return;
         }
+        /* @var Drutiny\Target\TargetInterface $target */
         $target = $event->getArgument('target');
 
         $domain = explode('.', $target['domain']);
 
         do {
             $zone = implode('.', $domain);
+            if (empty($zone)) {
+                break;
+            }
             $this->logger->notice("Fetching Cloudflare zone information for $zone.");
             // Attempt to find a matching Cloudflare zone.
+
             $response = $this->cache->get('cloudflare.zone.'.$zone, function (CacheItemInterface $cache) use ($zone) {
                 $cache->expiresAfter(3600);
                 return $this->client->request('GET', 'zones', [
@@ -55,5 +60,7 @@ class EventsSubscriber implements EventSubscriberInterface {
             array_pop($domain);
         }
         while (count($domain) > 2);
+
+        $target['cloudflare.hasZone'] = $target->hasProperty('cloudflare.zone');
     }
 }
