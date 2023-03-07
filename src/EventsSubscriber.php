@@ -45,7 +45,7 @@ class EventsSubscriber implements EventSubscriberInterface {
             $response = $this->cache->get('cloudflare.zone.'.$zone, function (CacheItemInterface $cache) use ($zone) {
                 $cache->expiresAfter(3600);
                 return $this->client->request('GET', 'zones', [
-                    'name' => $zone
+                    'query' => ['name' => $zone]
                 ]);
             });
 
@@ -57,9 +57,9 @@ class EventsSubscriber implements EventSubscriberInterface {
             }
 
             // Perhaps this domain is a sub-domain of another zone.
-            array_pop($domain);
+            array_shift($domain);
         }
-        while (count($domain) > 2);
+        while (count($domain) >= 2);
 
         $target['cloudflare.hasZone'] = $target->hasProperty('cloudflare.zone');
     }
