@@ -2,16 +2,13 @@
 
 namespace Drutiny\Cloudflare\Audit;
 
-use Drutiny\Attribute\UseService;
 use Drutiny\Audit\AbstractAnalysis;
 use Drutiny\Cloudflare\Client;
-use Drutiny\Sandbox\Sandbox;
 use Symfony\Component\Yaml\Yaml;
 
 /**
  * 
  */
-#[UseService(id: Client::class, method: 'setClient')]
 class ZoneAnalysis extends AbstractAnalysis
 {
     use ApiEnabledAuditTrait;
@@ -19,13 +16,13 @@ class ZoneAnalysis extends AbstractAnalysis
     /**
      * {@inheritdoc}
      */
-    public function gather(Sandbox $sandbox)
+    public function gather(Client $client)
     {
         $this->set('host', $this->target['domain']);
 
         $this->set('zone', $this->target['cloudflare.zone']->export());
 
-        $response = $this->client->request("GET", "zones/{$this->target['cloudflare.zone.id']}/settings");
+        $response = $client->request("GET", "zones/{$this->target['cloudflare.zone.id']}/settings");
 
         // Provide keyed versions too.
         foreach ($response['result'] as &$setting) {

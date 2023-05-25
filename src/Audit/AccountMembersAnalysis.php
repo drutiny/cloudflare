@@ -2,44 +2,25 @@
 
 namespace Drutiny\Cloudflare\Audit;
 
-use Drutiny\Attribute\UseService;
+use Drutiny\Attribute\Parameter;
 use Drutiny\Cloudflare\Client;
-use Drutiny\Sandbox\Sandbox;
 use Drutiny\Audit\AbstractAnalysis;
 
 /**
  * 
  */
-#[UseService(id: Client::class, method: 'setClient')]
+#[Parameter(
+    name: 'zone',
+    description: 'The apex domain registered with Cloudflare.',
+)]
 class AccountMembersAnalysis extends AbstractAnalysis
 {
     use ApiEnabledAuditTrait;
 
-    public function configure():void
+    public function gather(Client $client)
     {
-        $this->addParameter(
-            'zone',
-            static::PARAMETER_OPTIONAL,
-            'The apex domain registered with Cloudflare.',
-            NULL
-        );
-        $this->addParameter(
-            'expression',
-            static::PARAMETER_OPTIONAL,
-            'A Twig expression to evaluate the outcome of a page rule.',
-            ''
-        );
-        $this->addParameter(
-            'not_applicable',
-            static::PARAMETER_OPTIONAL,
-            'The expression language to evaludate if the analysis is not applicable. See https://symfony.com/doc/current/components/expression_language/syntax.html',
-            'false'
-        );
+        $this->setClient($client);
 
-    }
-
-    public function gather(Sandbox $sandbox)
-    {
         $uri = $this->target['uri'];
         $host = strpos($uri, 'http') === 0 ? parse_url($uri, PHP_URL_HOST) : $uri;
         $this->set('host', $host);
@@ -51,7 +32,7 @@ class AccountMembersAnalysis extends AbstractAnalysis
         $page = 1;
 
         do {
-            $response = $this->api()->request(
+            $response = $client->request(
                 'GET', "accounts/{$zone['account']['id']}/members", ['query' => [
                 'per_page' => 50,
                 'page' => $page

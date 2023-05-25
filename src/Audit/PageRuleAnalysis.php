@@ -2,46 +2,35 @@
 
 namespace Drutiny\Cloudflare\Audit;
 
-use Drutiny\Attribute\UseService;
+use Drutiny\Attribute\Parameter;
 use Drutiny\Cloudflare\Client;
-use Drutiny\Sandbox\Sandbox;
 use Drutiny\Audit\AbstractAnalysis;
 
 /**
  *
  */
-#[UseService(id: Client::class, method: 'setClient')]
+#[Parameter(
+    name: 'zone',
+    description: 'The apex domain registered with Cloudflare.',
+)]
+#[Parameter(
+    name: 'rule',
+    description: 'The page rule pattern to look up.',
+)]
 class PageRuleAnalysis extends AbstractAnalysis
 {
     use ApiEnabledAuditTrait;
 
-    public function configure():void
-    {
-        $this->addParameter(
-            'zone',
-            static::PARAMETER_OPTIONAL,
-            'The apex domain registered with Cloudflare.',
-            NULL
-        );
-        $this->addParameter(
-            'rule',
-            static::PARAMETER_OPTIONAL,
-            'The page rule pattern to look up.',
-            ''
-        );  
-        parent::configure();
-    }
-
-    public function gather(Sandbox $sandbox)
+    public function gather(Client $client)
     {
         $uri = $this->target['uri'];
         $host = strpos($uri, 'http') === 0 ? parse_url($uri, PHP_URL_HOST) : $uri;
         $this->set('host', $host);
 
-        $zone  = $this->zoneInfo($this->getParameter('zone', $host));
+        $zone  = $this->zoneInfo($this->getParameter('zone', $host), $client);
         $this->set('zone', $zone['name']);
 
-        $response = $this->api()->request('GET', "zones/{$zone['id']}/pagerules");
+        $response = $client->request('GET', "zones/{$zone['id']}/pagerules");
 
         // Create a reusable translation function to allow settings to use variables.
         $t = function ($v) use ($zone, $host) {

@@ -14,14 +14,14 @@ trait ApiEnabledAuditTrait {
   }
 
   /**
-   * @deprecated
+   * @deprecated use client property.
    */
   protected function api():Client
   {
     return $this->client;
   }
 
-  protected function zoneInfo($zone)
+  protected function zoneInfo($zone, Client $client = null)
   {
     $original_zone = $zone;
     $names = explode('.', $zone);
@@ -30,7 +30,7 @@ trait ApiEnabledAuditTrait {
 
       try {
         $this->logger->debug("Trying to load zone: $zone");
-        $results = $this->api()->request('GET', 'zones', ['query' => [
+        $results = ($client ??= $this->client)->request('GET', 'zones', ['query' => [
             'page' => 1,
             'name' => $zone,
             'per_page' => 20

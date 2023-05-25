@@ -2,33 +2,27 @@
 
 namespace Drutiny\Cloudflare\Audit;
 
-use Drutiny\Attribute\UseService;
-use Drutiny\Sandbox\Sandbox;
+use Drutiny\Attribute\Parameter;
+use Drutiny\Attribute\Type;
 use Drutiny\Audit\AbstractAnalysis;
 use Drutiny\Cloudflare\Client;
 
 /**
  * 
  */
-#[UseService(id: Client::class, method: 'setClient')]
+#[Parameter(
+    name: 'query',
+    mode: Parameter::REQUIRED,
+    type: Type::STRING,
+    description: 'The GraphQL query to send to the Cloudflare GraphQL API endpoint.'
+)]
 class PageRuleAnalysis extends AbstractAnalysis
 {
     use ApiEnabledAuditTrait;
 
-    public function configure():void
+    public function gather(Client $client)
     {
-        $this->addParameter(
-            'query',
-            static::PARAMETER_REQUIRED,
-            'The GraphQL query to send to the Cloudflare GraphQL API endpoint.',
-            NULL
-        );
-        parent::configure();
-    }
-
-    public function gather(Sandbox $sandbox)
-    {
-        $response = $this->api()->request('POST', 'graphql', [
+        $response = $client->request('POST', 'graphql', [
             'body' => $this->interpolate($this->getParameter('graphql'))
         ]);
         $this->set('data', $response['data']);

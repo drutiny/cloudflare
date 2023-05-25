@@ -2,37 +2,36 @@
 
 namespace Drutiny\Cloudflare\Audit;
 
+use Drutiny\Attribute\Parameter;
+use Drutiny\Attribute\Type;
 use Drutiny\Attribute\UseService;
 use Drutiny\Cloudflare\Client;
 use Drutiny\Sandbox\Sandbox;
 use Symfony\Component\Yaml\Yaml;
 
 /**
- *
+ * @deprecated use Drutiny\Cloudflare\Audit\PageRuleAnalysis.
  */
+#[Parameter(
+  name: 'zone',
+  description: 'The apex domain registered with Cloudflare.',
+)]
+#[Parameter(
+  name: 'rule',
+  description: 'The page rule pattern to look up.',
+)]
+#[Parameter(
+  name: 'settings',
+  description: 'A keyed list of actions the page rule should action.',
+  type: Type::HASH
+)]
 #[UseService(id: Client::class, method: 'setClient')]
 class PageRuleMatch extends ApiEnabledAudit {
 
-  public function configure():void
-  {
-      $this->addParameter(
-        'zone',
-        static::PARAMETER_OPTIONAL,
-        'The apex domain registered with Cloudflare.',
-        NULL
-      );
-      $this->addParameter(
-        'rule',
-        static::PARAMETER_OPTIONAL,
-        'The page rule pattern to look up.',
-        ''
-      );
-      $this->addParameter(
-        'settings',
-        static::PARAMETER_OPTIONAL,
-        'A keyed list of actions the page rule should action.',
-        ''
-      );
+  use ApiEnabledAuditTrait;
+
+  public function configure():void {
+    $this->setDeprecated('Use Drutiny\Cloudflare\Audit\PageRuleAnalysis');
   }
 
   public function audit(Sandbox $sandbox)
@@ -44,7 +43,7 @@ class PageRuleMatch extends ApiEnabledAudit {
     $zone  = $this->zoneInfo($this->getParameter('zone', $host));
     $this->set('zone', $zone['name']);
 
-    $response = $this->api()->request('GET', "zones/{$zone['id']}/pagerules");
+    $response = $this->client->request('GET', "zones/{$zone['id']}/pagerules");
 
     // Create a reusable translation function to allow settings to use variables.
     $t = function ($v) use ($zone, $host) {
@@ -104,8 +103,6 @@ class PageRuleMatch extends ApiEnabledAudit {
     $this->set('settings_array', array_map(function ($key, $value) {
       return ['id' => $key, 'value' => $value];
     }, array_keys($settings), array_values($settings)));
-
-    $sandbox->logger()->info(__CLASS__ . PHP_EOL . Yaml::dump(['parameters' => $this->getParameterTokens()], 6));
 
     return empty($invalid_actions);
   }

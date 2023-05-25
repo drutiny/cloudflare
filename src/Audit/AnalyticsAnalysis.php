@@ -2,46 +2,37 @@
 
 namespace Drutiny\Cloudflare\Audit;
 
-use Drutiny\Attribute\UseService;
+use Drutiny\Attribute\Parameter;
 use Drutiny\Audit\AbstractAnalysis;
-use Drutiny\Sandbox\Sandbox;
+use Drutiny\Cloudflare\Client;
 
 /**
  * 
  */
-#[UseService(id: Client::class, method: 'setClient')]
+#[Parameter(
+    name: 'zone',
+    description: 'The apex domain registered with Cloudflare.',
+)]
 class AnalyticsAnalysis extends AbstractAnalysis
 {
     use ApiEnabledAuditTrait;
 
-    public function configure():void
-    {
-        $this->addParameter(
-            'expression',
-            static::PARAMETER_OPTIONAL,
-            'An expression to evaluate to determine the outcome of the audit',
-            ''
-        );
-
-    }
-
-
     /**
      * {@inheritdoc}
      */
-    public function gather(Sandbox $sandbox)
+    public function gather(Client $client)
     {
         $uri = $this->target['uri'];
         $host = strpos($uri, 'http') === 0 ? parse_url($uri, PHP_URL_HOST) : $uri;
         $this->set('host', $host);
 
-        $zone  = $this->zoneInfo($this->getParameter('zone', $host));
+        $zone  = $this->zoneInfo($this->getParameter('zone', $host), $client);
         $this->set('zone', $zone['name']);
 
-        $response = $this->api()->request(
+        $response = $client->request(
             "GET", "zones/{$zone['id']}/analytics/dashboard", ['query' => [
-            'since' => $sandbox->getReportingPeriodStart()->format(\DateTime::RFC3339),
-            'until' => $sandbox->getReportingPeriodEnd()->format(\DateTime::RFC3339),
+            'since' => $this->reportingPeriodStart->format(\DateTime::RFC3339),
+            'until' => $this->reportingPeriodEnd->format(\DateTime::RFC3339),
             ]]
         );
 
