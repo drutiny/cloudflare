@@ -2,6 +2,7 @@
 
 namespace Drutiny\Cloudflare;
 
+use Drutiny\Target\TargetInterface;
 use Psr\Cache\CacheItemInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
@@ -32,6 +33,13 @@ class EventsSubscriber implements EventSubscriberInterface {
         /* @var Drutiny\Target\TargetInterface $target */
         $target = $event->getArgument('target');
 
+        if (!$target->hasProperty('cloudflare.hasZone')) {
+            $target->registerLazyProperty('cloudflare.hasZone', fn($target) => $this->loadZoneInfo($target));
+        }        
+    }
+
+
+    protected function loadZoneInfo(TargetInterface $target) {
         $domain = explode('.', $target['domain']);
 
         do {
@@ -60,7 +68,6 @@ class EventsSubscriber implements EventSubscriberInterface {
             array_shift($domain);
         }
         while (count($domain) >= 2);
-
-        $target['cloudflare.hasZone'] = $target->hasProperty('cloudflare.zone');
+        return $target->hasProperty('cloudflare.zone');
     }
 }
