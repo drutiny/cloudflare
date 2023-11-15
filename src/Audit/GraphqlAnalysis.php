@@ -16,7 +16,7 @@ use Drutiny\Cloudflare\Client;
     type: Type::STRING,
     description: 'The GraphQL query to send to the Cloudflare GraphQL API endpoint.'
 )]
-class PageRuleAnalysis extends AbstractAnalysis
+class GraphqlAnalysis extends AbstractAnalysis
 {
     use ApiEnabledAuditTrait;
 
