@@ -21,7 +21,7 @@ trait ApiEnabledAuditTrait {
     return $this->client;
   }
 
-  protected function zoneInfo($zone, Client $client = null)
+  protected function zoneInfo($zone, ?Client $client = null)
   {
     $original_zone = $zone;
     $names = explode('.', $zone);
